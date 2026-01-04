@@ -49,6 +49,12 @@ func (s service) Create(ctx context.Context, name, startDate, endDate string) (*
 		return nil, ErrInvalidStartDate // ErrInvalidStartDate
 	}
 
+	// Validacion que el Start Date no puede ser superior a End Date. Esto se usa con After de GO, relacionado a Times propios del lenguaje
+	if startDateParsed.After(endDateParsed) {
+		s.log.Println(ErrStartDateAfterEndDate)
+		return nil, ErrStartDateAfterEndDate
+	}
+
 	course := &domain.Course{
 		Name:      name,
 		StartDate: startDateParsed,
@@ -93,12 +99,26 @@ func (s service) Delete(ctx context.Context, id string) error {
 func (s service) Update(ctx context.Context, id string, name, startDate, endDate *string) error {
 	var startDateParsed, endDateParsed *time.Time
 
+	// Para la validacion del Start Date > End Date. Debemos traernos el curso
+	course, err := s.repo.Get(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
 	if startDate != nil {
 		date, err := time.Parse("2006-01-02", *startDate)
 		if err != nil {
 			s.log.Println(err)
-			return ErrInvalidStartDate // ErrInvalidStartDate
+			return ErrInvalidStartDate
 		}
+
+		// Una vez traido el Course. Hacemos la validacion
+		if date.After(course.EndDate) {
+			s.log.Println(ErrStartDateAfterEndDate)
+			return ErrStartDateAfterEndDate
+		}
+
 		startDateParsed = &date
 	}
 
@@ -108,6 +128,13 @@ func (s service) Update(ctx context.Context, id string, name, startDate, endDate
 			s.log.Println(err)
 			return err
 		}
+
+		// Aca tambien hacemos la validacion
+		if course.StartDate.After(date) {
+			s.log.Println(ErrStartDateAfterEndDate)
+			return ErrStartDateAfterEndDate
+		}
+
 		endDateParsed = &date
 	}
 

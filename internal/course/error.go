@@ -12,6 +12,7 @@ var ErrInvalidEndDate = errors.New("Invalid End Date")
 var ErrNameRequired = errors.New("Name is Required")
 var ErrStartRequired = errors.New("Start date is Required")
 var ErrEndRequired = errors.New("End date is Required")
+var ErrStartDateAfterEndDate = errors.New("start date no puede ser mayor que end date")
 
 // Manejo de Errores con Parametros Dinamicos
 type ErrNotFound struct {
