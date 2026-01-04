@@ -80,13 +80,16 @@ func makeCreateEndpoint(s Service) Controller {
 
 		course, err := s.Create(ctx, req.Name, req.StartDate, req.EndDate)
 		if err != nil {
-
-			if err == ErrInvalidStartDate || err == ErrInvalidEndDate {
+			switch err {
+			case ErrInvalidStartDate, ErrInvalidEndDate, ErrStartDateAfterEndDate:
 				return nil, response.BadRequest(err.Error())
+			default:
+				return nil, response.InternalServerError(err.Error())
 			}
 		}
 
 		return response.Created("success", course, nil), nil
+
 	}
 }
 
